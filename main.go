@@ -66,11 +66,11 @@ func Auth() gin.HandlerFunc {
 }
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
+	Init()
+
+	gin.SetMode(os.Getenv("GIN_MODE"))
 
 	r := gin.Default()
-
-	Init()
 
 	r.Use(Auth())
 
