@@ -80,3 +80,5 @@ tmp/*
 
 # Go workspace file
 go.work
+
+README.md
