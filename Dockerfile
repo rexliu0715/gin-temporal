@@ -22,6 +22,8 @@ WORKDIR /app
 
 COPY --from=builder /app/server .
 
+COPY .env .env
+
 WORKDIR /app
 
 EXPOSE 8088
