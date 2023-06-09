@@ -79,7 +79,7 @@ func main() {
 	r.Run(":" + strconv.Itoa(serverPort)) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
-type workflowInput map[string]interface{}
+type workflowInput *map[string]interface{}
 
 func handleWorkflow(c *gin.Context) {
 	workflowType := xstrings.ToCamelCase(c.Param("workflowType"))
