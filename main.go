@@ -24,12 +24,12 @@ const (
 )
 
 var (
-	taskQueue             string
-	serverPort            int
-	temporalToken         string
-	temporalAddress       string
-	temporalNamespace     string
-	temporalHeaderToken   string
+	TASK_QUEUE            string
+	SERVER_PORT           int
+	TEMPORAL_TOKEN        string
+	TEMPORAL_ADDRESS      string
+	TEMPORAL_NAMESPACE    string
+	TEMPORAL_HEADER_TOKEN string
 	temporalClientOptions client.Options
 )
 
@@ -40,24 +40,22 @@ func Init() {
 		log.Fatal("Error loading .env file")
 	}
 
-	serverPort, _ = strconv.Atoi(os.Getenv("SERVER_PORT"))
-	temporalToken = os.Getenv("TEMPORAL_TOKEN")
-	temporalHeaderToken = os.Getenv("TEMPORAL_HEADER_TOKEN")
-	temporalAddress = os.Getenv("TEMPORAL_ADDRESS")
-	temporalNamespace = os.Getenv("TEMPORAL_NAMESPACE")
-	taskQueue = os.Getenv("TASK_QUEUE")
+	SERVER_PORT, _ = strconv.Atoi(os.Getenv("SERVER_PORT"))
+	TEMPORAL_TOKEN = os.Getenv("TEMPORAL_TOKEN")
+	TEMPORAL_HEADER_TOKEN = os.Getenv("TEMPORAL_HEADER_TOKEN")
+	TEMPORAL_ADDRESS = os.Getenv("TEMPORAL_ADDRESS")
+	TEMPORAL_NAMESPACE = os.Getenv("TEMPORAL_NAMESPACE")
+	TASK_QUEUE = os.Getenv("TASK_QUEUE")
 
 	temporalClientOptions = client.Options{
-		HostPort:  temporalAddress,
-		Namespace: temporalNamespace,
+		HostPort:  TEMPORAL_ADDRESS,
+		Namespace: TEMPORAL_NAMESPACE,
 	}
 }
 
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.Println(temporalHeaderToken)
-		token := c.Request.Header.Get(temporalHeaderToken)
-		if token != temporalToken {
+		if c.Request.Header.Get(TEMPORAL_HEADER_TOKEN) != TEMPORAL_TOKEN {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": unauthorizedError,
 			})
@@ -76,10 +74,8 @@ func main() {
 
 	r.POST("/:workflowType/:workflowName", handleWorkflow)
 
-	r.Run(":" + strconv.Itoa(serverPort)) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	r.Run(":" + strconv.Itoa(SERVER_PORT)) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
-
-type workflowInput *map[string]interface{}
 
 func handleWorkflow(c *gin.Context) {
 	workflowType := xstrings.ToCamelCase(c.Param("workflowType"))
@@ -100,12 +96,12 @@ func handleWorkflow(c *gin.Context) {
 
 	workflowOptions := client.StartWorkflowOptions{
 		ID:                       id,
-		TaskQueue:                taskQueue,
+		TaskQueue:                TASK_QUEUE,
 		WorkflowExecutionTimeout: 60 * time.Second,
 	}
 
-	var input workflowInput
-	if err := c.BindJSON(&input); err != nil {
+	var input *interface{}
+	if err := c.ShouldBindJSON(&input); err != nil {
 		log.Println("Error binding JSON request: ", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"errors": invalidRequest,
