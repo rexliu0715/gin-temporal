@@ -82,3 +82,5 @@ tmp/*
 go.work
 
 README.md
+
+tmp
