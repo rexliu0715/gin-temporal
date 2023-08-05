@@ -86,21 +86,21 @@ func main() {
 
 	r.Use(Auth())
 
-	r.POST("/:workflowQueue/:workflowName", handleWorkflow)
+	r.POST("/:workflowService/:workflowName", handleWorkflow)
 
 	r.Run(":" + strconv.Itoa(SERVER_PORT)) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
 
 func handleWorkflow(c *gin.Context) {
-	workflowQueue := c.Param("workflowQueue")
-	workflowName := xstrings.ToCamelCase(c.Param("workflowName"))
+	taskQueue := c.Request.Header.Get("Temporal-Task-Queue")
+	workflowName := xstrings.ToCamelCase(c.Param("workflowService")) + xstrings.ToCamelCase(c.Param("workflowName"))
 	workflowExecutionTimeoutStr := c.Request.Header.Get("Temporal-Workflow-Execution-Timeout")
 
-	log.Printf("Starting workflow %s in queue %s", workflowName, workflowQueue)
+	log.Printf("Starting workflow %s in queue %s", workflowName, taskQueue)
 
 	var input *interface{}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		log.Printf("Error in binding JSON for workflow %s in queue %s: %+v", workflowName, workflowQueue, err)
+		log.Printf("Error in binding JSON for workflow %s in queue %s: %+v", workflowName, taskQueue, err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"errors": invalidRequest,
 		})
@@ -110,7 +110,6 @@ func handleWorkflow(c *gin.Context) {
 	workflowExecutionTimeout := 10
 
 	if workflowExecutionTimeoutStr != "" {
-		log.Println("in workflow exlkfjsdlfksdflk", workflowExecutionTimeout)
 		timeout, err := strconv.Atoi(workflowExecutionTimeoutStr)
 		if err != nil {
 			log.Printf("Error converting workflow timeout string to int: %v", err)
@@ -125,14 +124,14 @@ func handleWorkflow(c *gin.Context) {
 	log.Println("workflowExecutionTimeout", workflowExecutionTimeout)
 
 	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue:                workflowQueue,
+		TaskQueue:                taskQueue,
 		WorkflowExecutionTimeout: time.Duration(workflowExecutionTimeout) * time.Second,
 	}
 
 	workflowRun, err := temporalClient.ExecuteWorkflow(context.Background(), workflowOptions, workflowName, input)
 
 	if err != nil {
-		log.Printf("Error executing workflow %s in queue %s: %+v", workflowName, workflowQueue, err)
+		log.Printf("Error executing workflow %s in queue %s: %+v", workflowName, taskQueue, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"errors": serverError,
 		})
@@ -141,7 +140,7 @@ func handleWorkflow(c *gin.Context) {
 
 	var result interface{}
 	if err := workflowRun.Get(context.Background(), &result); err != nil {
-		log.Printf("Error getting response from workflow %s in queue %s: %+v", workflowName, workflowQueue, err)
+		log.Printf("Error getting response from workflow %s in queue %s: %+v", workflowName, taskQueue, err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"id":     workflowRun.GetID(),
 			"errors": serverError,
