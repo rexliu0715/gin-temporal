@@ -28,7 +28,7 @@ var (
 	TEMPORAL_TOKEN        string
 	TEMPORAL_ADDRESS      string
 	TEMPORAL_NAMESPACE    string
-	TEMPORAL_HEADER_TOKEN string
+	TEMPORAL_HEADER_TOKEN_NAME string
 	temporalClientOptions client.Options
 	temporalClient        client.Client
 )
@@ -42,7 +42,7 @@ func Init() {
 
 	SERVER_PORT, _ = strconv.Atoi(os.Getenv("SERVER_PORT"))
 	TEMPORAL_TOKEN = os.Getenv("TEMPORAL_TOKEN")
-	TEMPORAL_HEADER_TOKEN_NAME = os.Getenv("TEMPORAL_HEADER_TOKEN")
+	TEMPORAL_HEADER_TOKEN_NAME = os.Getenv("TEMPORAL_HEADER_TOKEN_NAME")
 	TEMPORAL_ADDRESS = os.Getenv("TEMPORAL_ADDRESS")
 	TEMPORAL_NAMESPACE = os.Getenv("TEMPORAL_NAMESPACE")
 	TASK_QUEUE = os.Getenv("TASK_QUEUE")
@@ -62,7 +62,7 @@ func Init() {
 
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.Header.Get(TEMPORAL_HEADER_TOKEN) != TEMPORAL_TOKEN {
+		if c.Request.Header.Get(TEMPORAL_HEADER_TOKEN_NAME) != TEMPORAL_TOKEN {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": unauthorizedError,
 			})
