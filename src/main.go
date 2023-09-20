@@ -23,14 +23,14 @@ const (
 )
 
 var (
-	TASK_QUEUE            string
-	SERVER_PORT           int
-	TEMPORAL_TOKEN        string
-	TEMPORAL_ADDRESS      string
-	TEMPORAL_NAMESPACE    string
+	TASK_QUEUE                 string
+	SERVER_PORT                int
+	TEMPORAL_TOKEN             string
+	TEMPORAL_ADDRESS           string
+	TEMPORAL_NAMESPACE         string
 	TEMPORAL_HEADER_TOKEN_NAME string
-	temporalClientOptions client.Options
-	temporalClient        client.Client
+	temporalClientOptions      client.Options
+	temporalClient             client.Client
 )
 
 func Init() {
